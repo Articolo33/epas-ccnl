@@ -23,7 +23,7 @@ export function adminPassword(): string {
   if (process.env.E2E_ADMIN_PASSWORD) {
     return process.env.E2E_ADMIN_PASSWORD;
   }
-  const readme = fs.readFileSync(path.join(__dirname, '..', '..', 'README.md'), 'utf8');
+  const readme = fs.readFileSync(path.join(__dirname, '..', '..', 'README_EPAS.md'), 'utf8');
   const match = readme.match(/username: _admin_ password _([^_\s]+)_/);
   if (!match) {
     throw new Error('Password iniziale di admin non trovata nel README: impostare E2E_ADMIN_PASSWORD');
