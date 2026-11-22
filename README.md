@@ -57,3 +57,5 @@ GNU GPL v3). I diritti sul codice originale restano del
 Consiglio Nazionale delle Ricerche; le modifiche sono indicate nei file con la dicitura
 "epas-ccnl". Chi usa epas-ccnl in rete deve rendere disponibile il codice sorgente agli utenti,
 come richiede la AGPL.
+
+
