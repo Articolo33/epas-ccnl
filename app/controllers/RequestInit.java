@@ -14,6 +14,8 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+// Modificato da epas-ccnl (novembre 2026), modifica di ePAS per l'adeguamento al CCNL
+// Enti di Ricerca: vedi MODIFICHE_CCNL.md. Le parti modificate sono marcate "epas-ccnl".
 package controllers;
 
 import com.google.common.base.Optional;
@@ -284,6 +286,8 @@ public class RequestInit extends Controller {
         "Stampings.holidaySituation",
         "PersonMonths.trainingHours",
         "PersonMonths.hourRecap",
+        // epas-ccnl: riepilogo per quadrimestre
+        "CcnlQuadrimesters.show",
         "Vacations.show",
         "Vacations.list",
         "Certifications.certifications",
@@ -374,6 +378,8 @@ public class RequestInit extends Controller {
         "Competences.competences",
         "PersonMonths.trainingHours",
         "PersonMonths.hourRecap",
+        // epas-ccnl: riepilogo per quadrimestre
+        "CcnlQuadrimesters.show",
         "Vacations.show",
         "Persons.changePassword",
         "Absences.absencesPerPerson");

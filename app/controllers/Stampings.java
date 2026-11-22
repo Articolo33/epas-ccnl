@@ -14,6 +14,8 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+// Modificato da epas-ccnl (novembre 2026), modifica di ePAS per l'adeguamento al CCNL
+// Enti di Ricerca: vedi MODIFICHE_CCNL.md. Le parti modificate sono marcate "epas-ccnl".
 
 package controllers;
 
@@ -56,6 +58,7 @@ import manager.NotificationManager;
 import manager.PersonDayManager;
 import manager.SecureManager;
 import manager.StampingManager;
+import manager.ccnl.CcnlRules;
 import manager.configurations.EpasParam;
 import manager.recaps.personstamping.PersonStampingDayRecap;
 import manager.recaps.personstamping.PersonStampingRecap;
@@ -304,7 +307,9 @@ public class Stampings extends Controller {
 
     if (user.getPerson() != null && user.getPerson().equals(person) 
         && !wrperson.isTechnician()) {
-      if (person.getOffice().checkConf(EpasParam.TR_AUTOCERTIFICATION, "true")) {
+      // epas-ccnl: autocertificazione sempre disponibile per i livelli I-III (art. 58 CCNL).
+      if (person.getOffice().checkConf(EpasParam.TR_AUTOCERTIFICATION, "true")
+          || CcnlRules.appliesTo(person)) {
         autocertification = true;
       }
     }
@@ -446,8 +451,9 @@ public class Stampings extends Controller {
       boolean disableInsert = false;
       User user = Security.getUser().get();
       if (user.getPerson() != null) {
-        if (person.getOffice().checkConf(EpasParam.WORKING_OFF_SITE, "true") 
-            && person.checkConf(EpasParam.OFF_SITE_STAMPING, "true")) {
+        if ((person.getOffice().checkConf(EpasParam.WORKING_OFF_SITE, "true") 
+            && person.checkConf(EpasParam.OFF_SITE_STAMPING, "true"))
+            || CcnlRules.appliesTo(person)) {
           disableInsert = true;
         }
       }

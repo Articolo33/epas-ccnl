@@ -14,6 +14,8 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+// Modificato da epas-ccnl (novembre 2026), modifica di ePAS per l'adeguamento al CCNL
+// Enti di Ricerca: vedi MODIFICHE_CCNL.md. Le parti modificate sono marcate "epas-ccnl".
 
 package manager;
 
@@ -45,6 +47,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
+import manager.ccnl.CcnlRules;
 import manager.configurations.ConfigurationManager;
 import manager.configurations.EpasParam;
 import manager.configurations.EpasParam.EpasParamValueType.LocalTimeInterval;
@@ -658,7 +661,10 @@ public class PersonDayManager {
     }
 
     // Il tipo orario non prevede il buono: default false
-    if (!wttd.mealTicketEnabled()) {
+    // epas-ccnl: per i livelli I-III il diritto al buono discende dall'art. 5 CCNL e non dal
+    // tipo orario configurato dalla sede; resta escluso solo il giorno non lavorativo.
+    if (!wttd.mealTicketEnabled()
+        && (wttd.isHoliday() || !CcnlRules.appliesTo(personDay.getPerson()))) {
       setTicketStatusIfNotForced(personDay, MealTicketBehaviour.notAllowMealTicket);
       return personDay;
     }
@@ -697,6 +703,12 @@ public class PersonDayManager {
     //3) Decisioni
 
     int mealTicketTime = wttd.getMealTicketTime();            //6 ore
+    // epas-ccnl: per i livelli I-III la soglia è quella dell'art. 5 c. 2 CCNL 21/02/2002
+    // (sei ore con la relativa pausa), uguale in tutte le sedi e non legata al tipo orario.
+    final boolean ccnlResearcher = CcnlRules.appliesTo(personDay.getPerson());
+    if (ccnlResearcher) {
+      mealTicketTime = CcnlRules.MEAL_TICKET_MINUTES;
+    }
     int mealTicketsMinutes = stampingTimeInOpening 
         + personDay.getApprovedOutOpening() 
         + personDay.getJustifiedTimeMeal();
@@ -708,7 +720,9 @@ public class PersonDayManager {
     }
 
     // Controllo pausa pomeridiana (solo se la soglia è definita)
-    if (!isAfternoonThresholdConditionSatisfied(
+    // epas-ccnl: la soglia pomeridiana non è prevista dall'art. 5 CCNL, non si applica ai
+    // livelli I-III.
+    if (!ccnlResearcher && !isAfternoonThresholdConditionSatisfied(
         computeValidPairStampings(personDay.getStampings()), wttd)) {
       setTicketStatusIfNotForced(personDay, MealTicketBehaviour.notAllowMealTicket);
       return personDay;
@@ -1065,7 +1079,13 @@ public class PersonDayManager {
     // CASI STANDARD
 
     // ### CASO 1: no festa + no assenze giornaliere + no timbrature + no assenze a completamento
-    if (!isFixedTimeAtWork && !isHoliday && !isAllDayAbsences && noStampings
+    // epas-ccnl: per ricercatori e tecnologi (livelli I-III) una giornata senza presenza non
+    // è un'anomalia. L'art. 58 c. 1-2 CCNL 21/02/2002 prevede 36 ore medie settimanali nel
+    // quadrimestre e l'autonoma determinazione del tempo di lavoro: il saldo negativo del
+    // giorno resta nel conteggio e si compensa sul periodo di riferimento.
+    final boolean ccnlResearcher = CcnlRules.appliesTo(personDay.getPerson());
+    if (!ccnlResearcher
+        && !isFixedTimeAtWork && !isHoliday && !isAllDayAbsences && noStampings
         && !isEnoughHourlyAbsences && !isCompleteDayAndAddOvertimeAbsence) {
       personDayInTroubleManager.setTrouble(personDay, Troubles.NO_ABS_NO_STAMP);
     } else {

@@ -1,3 +1,4 @@
+*{ Modificato da epas-ccnl (novembre 2026), modifica di ePAS: vedi MODIFICHE_CCNL.md }*
 <ul class="nav navbar-nav">
 
   #{set actions:[
@@ -9,6 +10,7 @@
   'Competences.competences',
   'PersonMonths.trainingHours',
   'PersonMonths.hourRecap',
+  'CcnlQuadrimesters.show',
   'MealTickets.mealTickets',
   'Charts.excelFile',
   'PrintTags.showTag',
@@ -101,6 +103,11 @@
       #{navbar.li @PersonMonths.hourRecap(session.get("yearSelected")) }
         <i class="fa fa-clock-o" aria-hidden="true"></i>
       #{/navbar.li}
+
+      *{ epas-ccnl: riepilogo per quadrimestre (art. 58 CCNL), solo livelli I-III }*
+      #{secure.li @CcnlQuadrimesters.show(session.get("yearSelected")) }
+        <i class="fa fa-balance-scale" aria-hidden="true"></i>
+      #{/secure.li}
 
       #{if currentUser.person != null}
         #{b.li @MealTickets.mealTickets() }

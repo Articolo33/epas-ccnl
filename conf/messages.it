@@ -1199,6 +1199,8 @@ MealTickets.returnedMealTickets= Buoni Pasto Riconsegnati
 Monitoring.agileMonitoring=Monitoriaggio lavoro agile con timbrature
 MonthRecaps.showRecaps= Riepilogo Mensile
 PersonMonths.hourRecap= Riepilogo Orario
+# epas-ccnl
+CcnlQuadrimesters.show= Orario per quadrimestre (CCNL)
 PersonMonths.trainingHours= Ore di Formazione
 PersonMonths.visualizePeopleTrainingHours= Ore di Formazione
 Persons.changePassword= Cambio Password

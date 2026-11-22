@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [epas-ccnl] - 2026-11-22
+### Changed
+  - epas-ccnl: modifica di ePAS 2.43.0 che applica ai livelli I-III le regole del CCNL Enti di
+    Ricerca (art. 58 CCNL 21/02/2002 e art. 139 c. 3 CCNL 18/01/2024). Dettagli in
+    MODIFICHE_CCNL.md.
+
 ## [2.43.0] - 2026-11-19
 ### Changed
   - Gli allegati delle assenze si scaricano con un nome composto da anno, mese, giorno, codice

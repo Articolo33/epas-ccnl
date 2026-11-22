@@ -14,6 +14,8 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+// Modificato da epas-ccnl (novembre 2026), modifica di ePAS per l'adeguamento al CCNL
+// Enti di Ricerca: vedi MODIFICHE_CCNL.md. Le parti modificate sono marcate "epas-ccnl".
 
 package controllers;
 
@@ -45,6 +47,7 @@ import lombok.val;
 import manager.AbsenceManager;
 import manager.NotificationManager;
 import manager.NotificationManager.Crud;
+import manager.ccnl.CcnlRules;
 import manager.configurations.ConfigurationManager;
 import manager.configurations.EpasParam;
 import manager.flows.AbsenceRequestManager;
@@ -338,7 +341,9 @@ public class AbsenceRequests extends Controller {
           .groupAbsenceTypeByName(DefaultGroup.RIPOSI_CNR.name()).get();
       PersonStampingRecap psDto = stampingsRecapFactory.create(person, LocalDate.now().getYear(),
           LocalDate.now().getMonthOfYear(), true);
-      int maxDays = (Integer) configurationManager.configValue(person.getOffice(),
+      // epas-ccnl: limite fisso di 22 giorni l'anno (art. 58 c. 5 CCNL 21/02/2002).
+      int maxDays = CcnlRules.appliesTo(person) ? CcnlRules.MAX_COMPENSATORY_DAYS_PER_YEAR
+          : (Integer) configurationManager.configValue(person.getOffice(),
           EpasParam.MAX_RECOVERY_DAYS_13, LocalDate.now().getYear());
       compensatoryRestAvailable = maxDays - psDto.numberOfCompensatoryRestUntilToday;
       handleCompensatoryRestSituation = true;
@@ -607,7 +612,10 @@ public class AbsenceRequests extends Controller {
         && absenceRequest.getPerson().isTopQualification()) {
       PersonStampingRecap psDto = stampingsRecapFactory.create(absenceRequest.getPerson(),
           LocalDate.now().getYear(), LocalDate.now().getMonthOfYear(), true);
-      int maxDays = (Integer) configurationManager
+      // epas-ccnl: limite fisso di 22 giorni l'anno (art. 58 c. 5 CCNL 21/02/2002).
+      int maxDays = CcnlRules.appliesTo(absenceRequest.getPerson())
+          ? CcnlRules.MAX_COMPENSATORY_DAYS_PER_YEAR
+          : (Integer) configurationManager
           .configValue(absenceRequest.getPerson().getOffice(),
           EpasParam.MAX_RECOVERY_DAYS_13, LocalDate.now().getYear());
       compensatoryRestAvailable = maxDays - psDto.numberOfCompensatoryRestUntilToday;
@@ -716,9 +724,13 @@ public class AbsenceRequests extends Controller {
       //un livelli I-III e non sia necessaria nessuna autorizzazione, allora
       //si invia solo una notifica al responsabile sede e/o responsabile gruppo
       //(dipendente dalla configurazione)
-      if (!generalSettingDao.generalSetting().isEnableAbsenceTopLevelAuthorization() 
+      //epas-ccnl: con le regole CCNL attive la comunicazione vale per ferie, assenze
+      //compensative e permessi personali dei livelli I-III, senza approvazioni.
+      if ((!generalSettingDao.generalSetting().isEnableAbsenceTopLevelAuthorization() 
           && absenceRequest.getPerson().isTopQualification() 
-          && absenceRequest.getType().canBeInsertedByTopLevelWithoutApproval) {
+          && absenceRequest.getType().canBeInsertedByTopLevelWithoutApproval)
+          || CcnlRules.isSelfCertifiedRequest(absenceRequest.getPerson(),
+              absenceRequest.getType())) {
         absenceRequestManager.topLevelSelfApproval(absenceRequest, absenceRequest.getPerson());
         notificationManager.sendEmailAbsenceNotification(absenceRequest);
       } else if (absenceRequest.getPerson().isSeatSupervisor() 

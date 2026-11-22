@@ -14,6 +14,8 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+// Modificato da epas-ccnl (novembre 2026), modifica di ePAS per l'adeguamento al CCNL
+// Enti di Ricerca: vedi MODIFICHE_CCNL.md. Le parti modificate sono marcate "epas-ccnl".
 
 package manager;
 
@@ -61,6 +63,7 @@ import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import manager.ccnl.CcnlRules;
 import manager.charts.ChartsManager.PersonStampingDayRecapHeader;
 import manager.configurations.ConfigurationManager;
 import manager.configurations.EpasParam;
@@ -593,7 +596,11 @@ public class AbsenceManager {
         + otherAbsences.size();
 
     Integer maxRecoveryDays;
-    if (person.getQualification().getQualification() <= 3) {
+    if (CcnlRules.appliesTo(person)) {
+      // epas-ccnl: art. 58 c. 5 CCNL 21/02/2002, massimo 22 giorni di assenza compensativa
+      // all'anno, uguale per tutte le sedi.
+      maxRecoveryDays = CcnlRules.MAX_COMPENSATORY_DAYS_PER_YEAR;
+    } else if (person.getQualification().getQualification() <= 3) {
       maxRecoveryDays = (Integer) configurationManager
           .configValue(person.getOffice(), EpasParam.MAX_RECOVERY_DAYS_13, date.getYear());
     } else {

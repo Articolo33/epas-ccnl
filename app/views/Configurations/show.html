@@ -1,3 +1,4 @@
+*{ Modificato da epas-ccnl (novembre 2026), modifica di ePAS: vedi MODIFICHE_CCNL.md }*
 #{extends 'main.html' /}
 #{set header:'navbar' /}
 #{set title: 'ePAS - Parametri di configurazione' /}
@@ -30,6 +31,19 @@
   }%
   
   #{title title:('Parametri configurazione ' + office.name), administration:true /}
+
+  *{ epas-ccnl: avviso sui parametri che il CCNL fissa per tutto il comparto }*
+  #{if manager.ccnl.CcnlRules.enabled()}
+    #{alert color:'warning'}
+      <p><strong>epas-ccnl.</strong> Per ricercatori e tecnologi (livelli I-III) le regole del
+      CCNL prevalgono su questi parametri: il lavoro fuori sede e l'autocertificazione delle
+      timbrature sono sempre disponibili (art. 58 c. 3, art. 5 c. 6); ferie, assenze
+      compensative e permessi personali sono comunicazioni senza approvazione (art. 59 c. 1,
+      art. 58 c. 5, art. 8 c. 1); il limite delle assenze compensative è 22 giorni e il
+      residuo orario non scade (art. 58 c. 5); la soglia del buono pasto è di 6 ore
+      (art. 5 c. 2). I valori qui sotto valgono solo per i livelli IV-IX.</p>
+    #{/alert}
+  #{/if}
 
   #{tabList}
   

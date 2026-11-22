@@ -14,6 +14,8 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+// Modificato da epas-ccnl (novembre 2026), modifica di ePAS per l'adeguamento al CCNL
+// Enti di Ricerca: vedi MODIFICHE_CCNL.md. Le parti modificate sono marcate "epas-ccnl".
 
 package security;
 
@@ -23,6 +25,7 @@ import org.joda.time.YearMonth;
 import dao.history.HistoricalDao;
 import dao.UserDao;
 import dao.GeneralSettingStaticDao;
+import manager.ccnl.CcnlRules;
 import manager.configurations.EpasParam;
 import models.absences.definitions.DefaultGroup;
 import models.enumerate.StampTypes;
@@ -3246,6 +3249,75 @@ when
  $c: PermissionCheck(action in ("Stampings.edit", "Stampings.editOffSite", "Stampings.saveOffSite", "Stampings.delete"), target == $target, granted == false)
  Configuration(epasParam == EpasParam.WORKING_OFF_SITE, fieldValue == true) from $o.configurations
  PersonConfiguration(epasParam == EpasParam.OFF_SITE_STAMPING, fieldValue == true) from $p.personConfigurations
+ eval (!$target.isPersistent() || HistoricalDao.lastRevisionOperator($target) == currentOperator)
+ /** non più indietro di 2 mesi fa e solo nei mesi non ancora inviati sugli attestati **/
+ eval($target.getYearMonth().isAfter(YearMonth.now().minusMonths(2)) && $p.checkLastCertificationDate($target.getYearMonth()))
+then
+ $c.grant();
+end
+
+/*******************************************************************************
+ * epas-ccnl: regole per ricercatori e tecnologi (livelli I-III) con le regole CCNL
+ * attive (manager.ccnl.CcnlRules, proprietà epas.ccnl.rt.enabled).
+ *
+ * Art. 58 c. 3 CCNL 21/02/2002: "Lo svolgimento dell'attività al di fuori della sede
+ * di servizio deve essere autocertificato mensilmente". Il lavoro fuori sede non
+ * richiede abilitazioni della sede (WORKING_OFF_SITE, OFF_SITE_STAMPING).
+ * Art. 5 c. 6: per i livelli III-I il buono pasto si consegna sulla base della
+ * dichiarazione del dipendente; art. 26 c. 1 lett. e): la rilevazione delle presenze
+ * vale "salvo quanto previsto dall'art. 58, comma 2". Il ricercatore o tecnologo può
+ * quindi autocertificare le proprie timbrature senza l'abilitazione TR_AUTOCERTIFICATION.
+ ******************************************************************************/
+rule ccnlResearcherCanSelfCertifyStampings
+when
+ $uro: UsersRolesOffices(role.name == Role.EMPLOYEE)
+ $p: Person(qualification != null && qualification.qualification <= 3) from currentOperator.person
+ eval(CcnlRules.enabled())
+ $c: PermissionCheck(action in (
+    "Stampings.insert",
+    "Stampings.insertOffsite",
+    "Stampings.edit",
+    "Stampings.editOffSite",
+    "Stampings.save",
+    "Stampings.saveOffSite",
+    "Stampings.editServiceReasons",
+    "Stampings.saveServiceReasons",
+    "Stampings.delete",
+    "PrintTags.autocertOffsite"
+    ), target == null, granted == false)
+then
+ $c.grant();
+end
+
+rule ccnlResearcherCanSeeQuadrimesters
+when
+ $uro: UsersRolesOffices(role.name == Role.EMPLOYEE)
+ $p: Person(qualification != null && qualification.qualification <= 3) from currentOperator.person
+ eval(CcnlRules.enabled())
+ $c: PermissionCheck(action == "CcnlQuadrimesters.show", target == null, granted == false)
+then
+ $c.grant();
+end
+
+rule ccnlResearcherCanSelfCertifyStampings_OnPerson
+when
+ $uro: UsersRolesOffices(role.name == Role.EMPLOYEE)
+ $p: Person(qualification != null && qualification.qualification <= 3) from currentOperator.person
+ eval(CcnlRules.enabled())
+ $c: PermissionCheck(action in ("Stampings.insert", "Stampings.insertOffsite"),
+    target == $p, granted == false)
+then
+ $c.grant();
+end
+
+rule ccnlResearcherCanEditOwnStampings
+when
+ $uro: UsersRolesOffices(role.name == Role.EMPLOYEE)
+ $p: Person(qualification != null && qualification.qualification <= 3) from currentOperator.person
+ eval(CcnlRules.enabled())
+ $target: Stamping(markedByTelework == false, this.getOwner() == $p)
+ $c: PermissionCheck(action in ("Stampings.edit", "Stampings.editOffSite", "Stampings.save",
+    "Stampings.saveOffSite", "Stampings.delete"), target == $target, granted == false)
  eval (!$target.isPersistent() || HistoricalDao.lastRevisionOperator($target) == currentOperator)
  /** non più indietro di 2 mesi fa e solo nei mesi non ancora inviati sugli attestati **/
  eval($target.getYearMonth().isAfter(YearMonth.now().minusMonths(2)) && $p.checkLastCertificationDate($target.getYearMonth()))

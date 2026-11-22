@@ -14,6 +14,8 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+// Modificato da epas-ccnl (novembre 2026), modifica di ePAS per l'adeguamento al CCNL
+// Enti di Ricerca: vedi MODIFICHE_CCNL.md. Le parti modificate sono marcate "epas-ccnl".
 
 package manager.flows;
 
@@ -44,6 +46,7 @@ import manager.ConsistencyManager;
 import manager.NotificationManager;
 import manager.NotificationManager.Crud;
 import manager.PersonDayManager;
+import manager.ccnl.CcnlRules;
 import manager.configurations.ConfigurationManager;
 import manager.services.absences.AbsenceForm;
 import manager.services.absences.AbsenceService;
@@ -214,9 +217,13 @@ public class AbsenceRequestManager {
     //Per i livelli I-III in configurazione generale può esserci scritto di
     //non abilitare la possibilità di chiedere autorizzazioni, in questo caso i flussi 
     //dei livelli I-III non hanno mai approvazioni richieste.
+    //epas-ccnl: con le regole CCNL attive ferie, assenze compensative e permessi personali
+    //dei livelli I-III sono comunicazioni, qualunque sia la configurazione della sede
+    //(art. 59 c. 1, art. 58 c. 2 e 5, art. 8 c. 1 CCNL 21/02/2002).
     val skipTopLevelAuthorization = 
-        person.isTopQualification() && requestType.canBeInsertedByTopLevelWithoutApproval
-          && !generalSettingDao.generalSetting().isEnableAbsenceTopLevelAuthorization();
+        (person.isTopQualification() && requestType.canBeInsertedByTopLevelWithoutApproval
+          && !generalSettingDao.generalSetting().isEnableAbsenceTopLevelAuthorization())
+        || CcnlRules.isSelfCertifiedRequest(person, requestType);
 
     if (requestType.alwaysSkipAdministrativeApproval || skipTopLevelAuthorization) {
       absenceRequestConfiguration.administrativeApprovalRequired = false;

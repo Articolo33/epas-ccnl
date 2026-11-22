@@ -1,0 +1,75 @@
+#{extends 'main.html' /}
+#{set header:'navbar' /}
+#{set title: 'ePAS - Quadrimestri ' + year  /}
+
+*{ epas-ccnl: file aggiunto, modifica di ePAS. Riepilogo per quadrimestre (art. 58 CCNL). }*
+
+<div class="container">
+
+  #{title title:('Orario per quadrimestre ' + year) /}
+
+  #{alert color:'info'}
+    <p>Per ricercatori e tecnologi l'orario di lavoro è di <strong>36 ore medie settimanali nel
+    quadrimestre</strong> (art. 58 c. 1 CCNL 21/02/2002, come modificato dall'art. 139 c. 3
+    CCNL 18/01/2024), con autonoma determinazione del proprio tempo di lavoro (art. 58 c. 2).</p>
+    <p>Le ore in eccesso o in difetto si sommano a quelle dei periodi precedenti. A fine
+    quadrimestre il difetto non può superare 20 ore: la parte oltre le 20 ore va recuperata nel
+    quadrimestre successivo (art. 58 c. 5). Il saldo giornaliero mostrato nel cartellino è solo
+    un'unità di conto: conta il saldo progressivo a fine quadrimestre.</p>
+  #{/alert}
+
+  #{if !applicable}
+    #{alert color:'warning'}
+      <p>Le regole dell'art. 58 CCNL si applicano ai livelli I-III. Questo riepilogo è
+      indicativo.</p>
+    #{/alert}
+  #{/if}
+
+  <table class="table table-condensed center">
+    <tr class="warning">
+      <th>Quadrimestre</th>
+      <th>Mesi</th>
+      <th>Tempo a lavoro<br>registrato</th>
+      <th>Saldo<br>a inizio periodo</th>
+      <th>Variazione<br>nel periodo</th>
+      <th>Saldo progressivo<br>a fine periodo</th>
+      <th>Assenze<br>compensative</th>
+      <th>Esito</th>
+    </tr>
+    #{list items:periods, as:'period'}
+    <tr>
+      <td><strong>${period.index}°</strong></td>
+      <td>&{'views.tags.display.date.month.' + period.firstMonth} -
+          &{'views.tags.display.date.month.' + period.lastMonth}</td>
+      #{if period.initialMinutes == null}
+        <td colspan="5"><em>Nessun riepilogo mensile disponibile</em></td>
+        <td>${period.outcome.label}</td>
+      #{/if}
+      #{else}
+        <td>${period.workedMinutes.toHourTime()}</td>
+        <td>${period.initialMinutes.toHourTime()}</td>
+        <td style="color: ${period.balanceMinutes < 0 ? 'darkred' : 'darkblue'}">
+          ${period.balanceMinutes.toHourTime()}</td>
+        <td style="color: ${period.finalMinutes < 0 ? 'darkred' : 'darkblue'}">
+          <strong>${period.finalMinutes.toHourTime()}</strong></td>
+        <td>${period.compensatoryDays}</td>
+        <td>
+          ${period.outcome.label}
+          #{if period.toRecoverMinutes > 0}
+            <br><small>Da recuperare nel quadrimestre successivo:
+            ${period.toRecoverMinutes.toHourTime()}</small>
+          #{/if}
+        </td>
+      #{/else}
+    </tr>
+    #{/list}
+  </table>
+
+  <p>Assenze compensative usate nell'anno: <strong>${compensatoryDaysUsed}</strong> su
+  ${compensatoryDaysMax} (art. 58 c. 5 CCNL). Limite del difetto a fine quadrimestre:
+  ${maxDeficitMinutes.toHourTime()}.</p>
+
+  <p><small>Il saldo è quello del Riepilogo Orario di ePAS, che non scade per i livelli I-III
+  (epas-ccnl). epas-ccnl è una modifica di ePAS, non una versione ufficiale.</small></p>
+
+</div>

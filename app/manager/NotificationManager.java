@@ -14,6 +14,8 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+// Modificato da epas-ccnl (novembre 2026), modifica di ePAS per l'adeguamento al CCNL
+// Enti di Ricerca: vedi MODIFICHE_CCNL.md. Le parti modificate sono marcate "epas-ccnl".
 
 package manager;
 
@@ -48,6 +50,7 @@ import helpers.TemplateExtensions;
 import it.cnr.iit.epas.DateUtility;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
+import manager.ccnl.CcnlRules;
 import manager.configurations.ConfigurationManager;
 import manager.configurations.EpasParam;
 import models.Competence;
@@ -450,8 +453,10 @@ public class NotificationManager {
     }
 
     // Se l'user che ha fatto l'inserimento è tecnologo e può autocertificare le timbrature esco
-    if (currentUser.getPerson().getOffice().checkConf(EpasParam.TR_AUTOCERTIFICATION, "true")
-        && currentUser.getPerson().getQualification().getQualification() <= 3) {
+    // epas-ccnl: lo stesso vale per i livelli I-III con le regole CCNL attive.
+    if ((currentUser.getPerson().getOffice().checkConf(EpasParam.TR_AUTOCERTIFICATION, "true")
+        && currentUser.getPerson().getQualification().getQualification() <= 3)
+        || CcnlRules.appliesTo(currentUser.getPerson())) {
       return;
     }
 

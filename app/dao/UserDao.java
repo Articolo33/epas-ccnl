@@ -14,6 +14,8 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+// Modificato da epas-ccnl (novembre 2026), modifica di ePAS per l'adeguamento al CCNL
+// Enti di Ricerca: vedi MODIFICHE_CCNL.md. Le parti modificate sono marcate "epas-ccnl".
 
 package dao;
 
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import lombok.val;
+import manager.ccnl.CcnlRules;
 import manager.configurations.EpasParam;
 import models.Office;
 import models.Role;
@@ -260,13 +263,19 @@ public class UserDao extends DaoBase {
         Role.TECHNICAL_ADMIN)) {
       stampTypes.addAll(StampTypes.onlyActiveWithoutOffSiteWork());
     }
+    // epas-ccnl: con le regole CCNL attive i livelli I-III autocertificano le proprie
+    // timbrature (art. 5 c. 6 e art. 58 c. 2-3 CCNL 21/02/2002) senza abilitazione della sede.
     if (user.getPerson().isTopQualification()
-        && user.getPerson().getOffice().checkConf(EpasParam.TR_AUTOCERTIFICATION, "true")) {
+        && (user.getPerson().getOffice().checkConf(EpasParam.TR_AUTOCERTIFICATION, "true")
+        || CcnlRules.appliesTo(user.getPerson()))) {
 
       stampTypes.addAll(StampTypes.onlyActiveWithoutOffSiteWork());
     }
-    if (user.getPerson().getOffice().checkConf(EpasParam.WORKING_OFF_SITE, "true")
-        && user.getPerson().checkConf(EpasParam.OFF_SITE_STAMPING, "true")) {
+    // epas-ccnl: il lavoro fuori sede dei livelli I-III si autocertifica mensilmente
+    // (art. 58 c. 3 CCNL 21/02/2002), senza abilitazioni della sede.
+    if ((user.getPerson().getOffice().checkConf(EpasParam.WORKING_OFF_SITE, "true")
+        && user.getPerson().checkConf(EpasParam.OFF_SITE_STAMPING, "true"))
+        || CcnlRules.appliesTo(user.getPerson())) {
       stampTypes.add(StampTypes.LAVORO_FUORI_SEDE);
     }
     return stampTypes;

@@ -14,6 +14,8 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+// Modificato da epas-ccnl (novembre 2026), modifica di ePAS per l'adeguamento al CCNL
+// Enti di Ricerca: vedi MODIFICHE_CCNL.md. Le parti modificate sono marcate "epas-ccnl".
 
 package manager;
 
@@ -34,6 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import manager.cache.CompetenceCodeManager;
+import manager.ccnl.CcnlRules;
 import manager.configurations.ConfigurationManager;
 import manager.configurations.EpasParam;
 import manager.services.mealtickets.MealTicketsServiceImpl.MealTicketOrder;
@@ -200,6 +203,12 @@ public class ContractMonthRecapManager {
       Integer monthExpiryRecoveryDay = (Integer) configurationManager
           .configValue(cmr.getPerson().getOffice(), param, cmr.getYear());
 
+      // epas-ccnl: per i livelli I-III le ore in eccesso o in difetto "vengono cumulate con
+      // quelle risultanti dei periodi precedenti" (art. 58 c. 5 CCNL 21/02/2002): il residuo
+      // dell'anno precedente non scade, qualunque sia il parametro della sede.
+      if (CcnlRules.appliesToQualification(cmr.qualifica)) {
+        monthExpiryRecoveryDay = 0;
+      }
       if (monthExpiryRecoveryDay != 0 && cmr.getMonth() > monthExpiryRecoveryDay) {
         cmr.setPossibileUtilizzareResiduoAnnoPrecedente(false);
         cmr.setRemainingMinutesLastYear(0);
